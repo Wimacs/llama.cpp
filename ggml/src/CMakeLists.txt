@@ -674,38 +674,49 @@ if (GGML_VULKAN)
 
         add_subdirectory(vulkan-shaders)
 
-        set (_ggml_vk_genshaders_cmd vulkan-shaders-gen)
-        set (_ggml_vk_header     ${CMAKE_CURRENT_BINARY_DIR}/ggml-vulkan-shaders.hpp)
-        set (_ggml_vk_source     ${CMAKE_CURRENT_BINARY_DIR}/ggml-vulkan-shaders.cpp)
-        set (_ggml_vk_input_dir  ${CMAKE_CURRENT_SOURCE_DIR}/vulkan-shaders)
-        set (_ggml_vk_output_dir ${CMAKE_CURRENT_BINARY_DIR}/vulkan-shaders.spv)
+        set (_ggml_dml_genshaders_cmd vulkan-shaders-gen)
+        set (_ggml_dml_header     ${CMAKE_CURRENT_BINARY_DIR}/ggml-vulkan-shaders.hpp)
+        set (_ggml_dml_source     ${CMAKE_CURRENT_BINARY_DIR}/ggml-vulkan-shaders.cpp)
+        set (_ggml_dml_input_dir  ${CMAKE_CURRENT_SOURCE_DIR}/vulkan-shaders)
+        set (_ggml_dml_output_dir ${CMAKE_CURRENT_BINARY_DIR}/vulkan-shaders.spv)
 
-        file(GLOB _ggml_vk_shader_deps "${_ggml_vk_input_dir}/*.comp")
+        file(GLOB _ggml_dml_shader_deps "${_ggml_dml_input_dir}/*.comp")
 
         add_custom_command(
-            OUTPUT ${_ggml_vk_header}
-                   ${_ggml_vk_source}
+            OUTPUT ${_ggml_dml_header}
+                   ${_ggml_dml_source}
 
-            COMMAND ${_ggml_vk_genshaders_cmd}
+            COMMAND ${_ggml_dml_genshaders_cmd}
                 --glslc      ${Vulkan_GLSLC_EXECUTABLE}
-                --input-dir  ${_ggml_vk_input_dir}
-                --output-dir ${_ggml_vk_output_dir}
-                --target-hpp ${_ggml_vk_header}
-                --target-cpp ${_ggml_vk_source}
+                --input-dir  ${_ggml_dml_input_dir}
+                --output-dir ${_ggml_dml_output_dir}
+                --target-hpp ${_ggml_dml_header}
+                --target-cpp ${_ggml_dml_source}
                 --no-clean
 
-            DEPENDS ${_ggml_vk_shader_deps}
+            DEPENDS ${_ggml_dml_shader_deps}
             COMMENT "Generate vulkan shaders"
         )
 
-        set(GGML_HEADERS_VULKAN ${CMAKE_CURRENT_SOURCE_DIR}/../include/ggml-vulkan.h ${_ggml_vk_header})
-        set(GGML_SOURCES_VULKAN ggml-vulkan.cpp ${_ggml_vk_source})
+        set(GGML_HEADERS_VULKAN ${CMAKE_CURRENT_SOURCE_DIR}/../include/ggml-vulkan.h ${_ggml_dml_header})
+        set(GGML_SOURCES_VULKAN ggml-vulkan.cpp ${_ggml_dml_source})
 
         list(APPEND GGML_EXTRA_LIBS_PRIVATE Vulkan::Vulkan)
         list(APPEND GGML_EXTRA_INCLUDES     ${CMAKE_CURRENT_BINARY_DIR})
     else()
         message(WARNING "Vulkan not found")
     endif()
+endif()
+
+if (GGML_DIRECTML)
+    message(STATUS "Using directML")
+
+    list(APPEND GGML_CDEF_PUBLIC GGML_USE_DIRECTML)
+
+    file(GLOB   GGML_HEADERS_DIRECTML "ggml-directml/*.h")
+    list(APPEND GGML_HEADERS_DIRECTML ${CMAKE_CURRENT_SOURCE_DIR}/../include/ggml-directml.h)
+    set(GGML_SOURCES_DIRECTML ggml-directml.cpp)
+    list(APPEND GGML_EXTRA_LIBS_PRIVATE dxgi.lib d3d12.lib)
 endif()
 
 if (GGML_KOMPUTE)
@@ -1381,6 +1392,7 @@ add_library(ggml
             ${GGML_SOURCES_SYCL}      ${GGML_HEADERS_SYCL}
             ${GGML_SOURCES_KOMPUTE}   ${GGML_HEADERS_KOMPUTE}
             ${GGML_SOURCES_VULKAN}    ${GGML_HEADERS_VULKAN}
+            ${GGML_SOURCES_DIRECTML}  ${GGML_HEADERS_DIRECTML}
             ${GGML_SOURCES_ROCM}      ${GGML_HEADERS_ROCM}
             ${GGML_SOURCES_BLAS}      ${GGML_HEADERS_BLAS}
             ${GGML_SOURCES_LLAMAFILE} ${GGML_HEADERS_LLAMAFILE}
