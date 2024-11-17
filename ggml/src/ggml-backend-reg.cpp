@@ -43,6 +43,10 @@
 #include "ggml-kompute.h"
 #endif
 
+#ifdef GGML_USE_DIRECTX
+#include "ggml-directx.h"
+#endif
+
 struct ggml_backend_registry {
     std::vector<ggml_backend_reg_t> backends;
     std::vector<ggml_backend_dev_t> devices;
@@ -74,6 +78,9 @@ struct ggml_backend_registry {
 #endif
 #ifdef GGML_USE_KOMPUTE
         register_backend(ggml_backend_kompute_reg());
+#endif
+#ifdef GGML_USE_DIRECTX
+        register_backend(ggml_backend_dx_reg());
 #endif
 
         register_backend(ggml_backend_cpu_reg());
